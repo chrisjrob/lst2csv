@@ -142,7 +142,9 @@ sub convert_text_to_date {
 
     $dt->add( days => $increment );
 
-    return $dt->format_cldr('dd/MM/yy');
+    # Remove as no compatible with older versions
+    # return $dt->format_cldr('dd/MM/yy');
+    return $dt->strftime('%d/%m/%y');
 }
 
 sub trim {
