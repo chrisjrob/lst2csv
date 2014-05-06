@@ -68,7 +68,7 @@ sub convert_statement {
             }
 
             $ddmmyy = convert_text_to_date($ddmmyy, 0);
-            print "\"$group\",\"$accid\",\"$account\",\"$actype\",\"$sortcode\",\"$currency\",\"$ddmmyy\",\"$asat\",$balance,\"\",\"\",\"Balance\"\n";
+            print "\"$group\",\"$accid\",\"$account\",\"$actype\",\"$sortcode\",\"$currency\",\"$ddmmyy\",\"$asat\",$balance,\"BAL\",\"\",\"\",\"Balance\"\n";
 
             if ($asat eq 'Close') {
                 $ddmmyy = convert_text_to_date($ddmmyy, 1)
@@ -81,7 +81,7 @@ sub convert_statement {
 
         # Assume a detail line
         } else {
-            my $details  = trim( substr( $line,  1, 36 ) );
+            my $details  = substr( $line,  1, 18 ) . '    ' . substr( $line, 19, 18);
             my $code     = trim( substr( $line, 37,  7 ) );
             my $payments = trim( substr( $line, 46, 15 ) );
             my $receipts = trim( substr( $line, 63, 13 ) );
@@ -109,7 +109,7 @@ sub convert_statement {
                 $code   = 'CHQ';
             }
 
-            print "\"$group\",\"$accid\",\"$account\",\"$actype\",\"$sortcode\",\"$currency\",\"$ddmmyy\",\"$asat\",$value,\"$code\",\"$cheque\",\"$details\"\n";
+            print "\"$group\",\"$accid\",\"$account\",\"$actype\",\"$sortcode\",\"$currency\",\"$ddmmyy\",\"$asat\",$value,\"$code\",\"$cheque\",\"\",\"$details\"\n";
 
         }
 
