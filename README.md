@@ -15,5 +15,6 @@ Synopsis
 Description
 -----------
 
-lst2csv will read the given input file(s) and print as CSV to STDOUT
+lst2csv will read the given input file(s) and print as CSV to STDOUT, using
+Barclays.net format with the addition of balance information.
 

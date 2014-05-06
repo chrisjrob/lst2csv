@@ -17,12 +17,28 @@ sub convert_statement {
     open( my $fh_statement_file, '<', $statement_file) or 
         die "Cannot open $statement_file: $!";
 
-    my $ddmmyy;
+    my $group    = '';
+    my $accid    = '';
+    my $actype   = '';
+    my $currency = 'GBP';
+    my $sortcode = '';
+    my $account  = '';
+    my $ddmmyy   = '';
+
+    print '"GROUP","ACC ID","ACCOUNT NO","TYPE","BANK CODE","CURR","ENTRY DATE","AS AT","AMOUNT","TLA CODE","CHEQUE NO","STATUS","DESCRIPTION"', "\n";
+
     while ( defined (my $line = <$fh_statement_file>) ) {
         chomp($line);
 
+        # Find sort code in branch line
+        if ( $line =~ /^\s+Branch\s+(\d\d-\d\d-\d\d)/ ) {
+            $sortcode = $1;
+
+        } elsif ( $line =~ /^\s+Id.*No\s+(\d{8})\s/ ) {
+            $account = $1;
+
         # Line has no alphanumerics - probably blank, certainly not interesting
-        if ( $line !~ /\w/ ) {
+        } elsif ( $line !~ /\w/ ) {
             next;
             
         # Line has no numerics - probably a title line
@@ -34,12 +50,15 @@ sub convert_statement {
             next;
 
         # A balance line
-        } elsif ( $line =~ /^\s+(Opening|Closing)\s+
+        } elsif ( $line =~ /^\s+(Open|Clos)ing\s+
                                 Balance\s+for\s+
                                 (\d{2}\/\d{2}\/\d{2})\s+
                                 ([\d,\.]+)\s+
                                 (DR)?\s+$/x ) {
-            my $openclose = $1;
+            my $asat = $1;
+            if ($asat eq 'Clos') {
+                $asat = 'Close';
+            }
             $ddmmyy    = $2;
             my $balance = format_number($3);
             my $crdr      = $4;
@@ -49,21 +68,20 @@ sub convert_statement {
             }
 
             $ddmmyy = convert_text_to_date($ddmmyy, 0);
-            print "$ddmmyy,$openclose,Balance,,$balance\n";
+            print "\"$group\",\"$accid\",\"$account\",\"$actype\",\"$sortcode\",\"$currency\",\"$ddmmyy\",\"$asat\",$balance,\"\",\"\",\"Balance\"\n";
 
-            if ($openclose eq 'Closing') {
+            if ($asat eq 'Close') {
                 $ddmmyy = convert_text_to_date($ddmmyy, 1)
             }
 
 #             # Temporary code to limit to first day only
-#             if ($openclose eq "Closing") {
+#             if ($asat eq "Close") {
 #                 last;
 #             }
 
         # Assume a detail line
         } else {
-            my $details1 = trim( substr( $line,  1, 18 ) );
-            my $details2 = trim( substr( $line, 19, 18 ) );
+            my $details  = trim( substr( $line,  1, 36 ) );
             my $code     = trim( substr( $line, 37,  7 ) );
             my $payments = trim( substr( $line, 46, 15 ) );
             my $receipts = trim( substr( $line, 63, 13 ) );
@@ -81,8 +99,17 @@ sub convert_statement {
 
             my $value    = $receipts - $payments;
             $value       = format_number($value);
+        
+            my $status   = '';
+            my $asat     = '';
 
-            print "$ddmmyy,$details1,$details2,$code,$value\n";
+            my $cheque   = '';
+            if ($code =~ /^\d+$/) {
+                $cheque = $code;
+                $code   = 'CHQ';
+            }
+
+            print "\"$group\",\"$accid\",\"$account\",\"$actype\",\"$sortcode\",\"$currency\",\"$ddmmyy\",\"$asat\",$value,\"$code\",\"$cheque\",\"$details\"\n";
 
         }
 
@@ -106,7 +133,8 @@ sub convert_text_to_date {
         $yy += 1900;
     } 
 
-    my $dt = DateTime->new(
+    my $dt;
+    $dt = DateTime->new(
         year       => $yy,
         month      => $mm,
         day        => $dd,
@@ -114,7 +142,7 @@ sub convert_text_to_date {
 
     $dt->add( days => $increment );
 
-    return $dt->dmy('/');
+    return $dt->format_cldr('dd/MM/yy');
 }
 
 sub trim {
@@ -123,7 +151,7 @@ sub trim {
     $text =~ s/\s+$//g;
     $text =~ s/^\s+//g;
 
-    $text =~ s/\s{2,}/ /g;
+    # $text =~ s/\s{2,}/ /g;
 
     $text =~ s/,//g;
 
