@@ -68,7 +68,7 @@ sub convert_statement {
             }
 
             $ddmmyy = convert_text_to_date($ddmmyy, 0);
-            print "\"$group\",\"$accid\",\"$account\",\"$actype\",\"$sortcode\",\"$currency\",\"$ddmmyy\",\"$asat\",$balance,\"BAL\",\"\",\"\",\"Balance\"\n";
+            print "\"$group\",\"$accid\",\"$account\",\"$actype\",\"$sortcode\",\"$currency\",\"$ddmmyy\",\"$asat\",$balance,\"BAL\",\"\",\"\",\"BALANCE               $asat\"\n";
 
             if ($asat eq 'Close') {
                 $ddmmyy = convert_text_to_date($ddmmyy, 1)
