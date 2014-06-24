@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-my $csvfile = 'C:/Kerridge/Rev7Work/bbm.csv';
+my $csvfile = 'C:/Barclays/bbm.csv';
 my $siffile = 'C:/Barclays/import.sif';
 
 test_source_file();
@@ -82,6 +82,9 @@ sub process {
 
             # Remove all quotes and spaces
             $line =~ s/[\"\ ]//g;
+
+            # Barclays.net does not permit underscores - replace with a space
+            $line =~ s/\_/ /g;
 
             ($sortcode, $name, $account, $amount, $narrative, $type) = split (/\,/, $line);
 
